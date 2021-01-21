@@ -6,7 +6,6 @@ const productService = new ProductsService()
 
 router.get('/', async (req, res, next) => {
     const { tags } = req.query
-    console.log('req', req.query)
     try {
         const products = await productService.getProducts({ tags })
 
@@ -72,7 +71,7 @@ router.delete('/:productId', async (req, res, next) => {
     const { productId } = req.params
 
     try {
-        const product = await productService.updateProduct({ productId })
+        const product = await productService.deleteProduct({ productId })
 
         res.status(200).json({
             data: product,
