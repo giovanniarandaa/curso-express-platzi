@@ -1,6 +1,6 @@
 const { MongoClient, ObjectId } = require("mongodb");
 const config = require("../config");
-
+const debug = require('debug')('app:mongo')
 const USER = encodeURIComponent(config.dbUser);
 const PASWORD = encodeURIComponent(config.dbPassword);
 const DB_NAME = encodeURIComponent(config.dbName);
@@ -18,7 +18,7 @@ class MongoLib {
   async connect() {
     try {
       await this.client.connect()
-      console.log('Connected successfully to mongo')
+      debug('Connected successfully to mongo')
       return this.client.db(this.dbName)
     } catch (error) {
       console.log(error)

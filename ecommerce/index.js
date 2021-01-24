@@ -1,13 +1,20 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const path = require('path')
+const debug = require('debug')("app:server")
+const helmet = require('helmet')
 const productsRouter = require('./routes/views/products')
 const productsApiRouter = require('./routes/api/products')
+const { logErrors, clientErrorHandler, errorHandler, wrapErrors } = require('./utils/middlewares/errorsHandlers')
+const isRequestAjaxOrApi = require('./utils/isRequestAjaxOrApi')
+const boom = require('boom')
+const authApiRouter = require('./routes/api/auth')
 
 // app
 const app = express()
 
 // middleware
+app.use(helmet())
 app.use(bodyParser.json())
 
 // static files
@@ -19,12 +26,31 @@ app.set("view engine", "pug")
 
 // routes
 app.use('/products', productsRouter)
-app.use('/api/products', productsApiRouter)
+productsApiRouter(app)
+app.use('/api/auth', authApiRouter)
 
 // redirect
 app.get('/', (req, res) => {
     res.redirect('/products')
 })
 
+app.use(function(req, res, next) {
+    if(isRequestAjaxOrApi(req)) {
+        const {
+            output: { statusCode, payload }
+        } = boom.notFound()
+
+        res.status(statusCode).json(payload)
+    }
+
+    res.status(404).render("404")
+})
+
+// error handlers
+app.use(logErrors)
+app.use(wrapErrors)
+app.use(clientErrorHandler)
+app.use(errorHandler)
+
 // server
-const server = app.listen(3000, () => console.log(`Listening http://localhost:${server.address().port}`))
+const server = app.listen(3000, () => debug(`Listening http://localhost:${server.address().port}`))
